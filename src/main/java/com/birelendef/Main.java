@@ -12,7 +12,7 @@ public class Main {
         Duration duration = Duration.of(1, ChronoUnit.DAYS);
         TimeSequence<Integer> ts = timeSequence();
         System.out.println(ts);
-        ts.append(1, today, duration);
+        ts.append(today,1, duration);
         ts.append(2, duration);
         System.out.println(ts);
     }
