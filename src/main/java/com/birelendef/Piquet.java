@@ -29,6 +29,11 @@ public class Piquet<T> {
         return value;
     }
 
+    public boolean isIncludeDate(LocalDateTime middlePoint){
+        return (((middlePoint.isAfter(this.getStartPoint())) && (middlePoint.isBefore(this.getEndPoint()))) ||
+                middlePoint.equals(this.getStartPoint()) ||  middlePoint.equals(this.getEndPoint()));
+    }
+
     @Override
     public String toString() {
         return "Piquet{" +

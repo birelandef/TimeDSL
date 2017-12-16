@@ -26,7 +26,7 @@ public class TimeSequence<T> {
     /**
      * Является ли последовательность непрерывной (или же между пикетами есть разрывы)
      */
-    private boolean isContinuous = false ;
+    private boolean isContinuous = true ;
 
     private List<Piquet<T>> piquets = new ArrayList<>();
 
@@ -56,20 +56,24 @@ public class TimeSequence<T> {
     }
 
     /**
-     * Получить значение на указанный момент времени.
-     * @param point
-     * @return
-     * @throws NoSuchValueInPiquets - если point не попадает ни в один пикет
+     * Get value for @link{point}
+     * @param point - date
+     * @return value for @link{point}
+     * @throws NoSuchValueInPiquets - if piquet included this @link{point} doesn't exist
      */
     public T get(LocalDateTime point) throws NoSuchValueInPiquets {
-        throw new NoSuchValueInPiquets();
+        if ((isEmpty) || (piquets.get(0).getStartPoint().isAfter(point)) ||
+                (getSequenceEndTime().isBefore(point)) )
+            throw new NoSuchValueInPiquets();
+        Piquet<T> foundPiquet = piquets.stream().filter(item -> item.isIncludeDate(point)).findFirst().orElseThrow(() -> new NoSuchValueInPiquets());
+        return foundPiquet.getValue();
     }
 
     /**
-     * Получить значение на указанный момент времени.
-     * @param point
-     * @param value
-     * @return true, if this value
+     * Get value for @link{point}
+     * @param point - date
+     * @param value - value for @link{point}
+     * @return true, if piquet included this @link{point} exists otherwise false
      */
     boolean tryGet(LocalDateTime point, T value){
         throw new UnsupportedOperationException();
@@ -82,7 +86,6 @@ public class TimeSequence<T> {
      * @throws NoSuchValueInPiquets - if piquet with goal value doesn't exist
      */
     public Piquet<T> find(@NotNull T value) throws NoSuchValueInPiquets{
-//        piquets.forEach(item -> {if (value.equals(item.getValue())) return item;});
         return piquets.stream().filter(item -> value.equals(item.getValue()))
                 .findFirst().orElseThrow(() -> new NoSuchValueInPiquets());
     }
@@ -115,7 +118,7 @@ public class TimeSequence<T> {
      * @return sequence with new piquet
      */
     public TimeSequence<T> append(LocalDateTime startPoint, T value,  Duration until){
-        if ((piquetCount>0) && (piquets.get(piquetCount-1).getEndPoint().isAfter(startPoint)))
+        if ((!isEmpty) && (piquets.get(piquetCount-1).getEndPoint().isAfter(startPoint)))
             throw new IllegalStateException(DATE_EXC);
         piquets.add(new Piquet<T>(until, startPoint, value));
         piquetCount++;
@@ -125,10 +128,9 @@ public class TimeSequence<T> {
     }
 
     private LocalDateTime getSequenceEndTime(){
-        if (piquetCount > 0)
-            return piquets.get(piquetCount-1).getEndPoint();
-        return null;
+        return isEmpty ? null : piquets.get(piquetCount-1).getEndPoint();
     }
+
 
     @Override
     public String toString() {
