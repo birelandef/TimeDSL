@@ -37,15 +37,13 @@ public class TimeSequenceTest {
         thrown.expectMessage(containsString(APPLICABLE_EXC));
         tsInt.append(1, ONE_DAY);
         tsInt.append(START_POINT,1, ONE_DAY);
-        System.out.println(tsInt);
     }
     @Test
     public void testAppendWithoutStartPoint(){
         tsInt.append(START_POINT,1, ONE_DAY);
         tsInt.append(1, ONE_DAY);
         Assert.assertEquals("Length equals",Duration.ofDays(2),tsInt.getLength());
-        Assert.assertEquals("Length equals",2, tsInt.getPiquetCount());
-        System.out.println(tsInt);
+        Assert.assertEquals("Piquet's count equals",2, tsInt.getPiquetCount());
     }
     @Test
     public void testAppendWithStartPoint(){
