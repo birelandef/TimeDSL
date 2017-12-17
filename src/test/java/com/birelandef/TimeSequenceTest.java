@@ -23,6 +23,7 @@ public class TimeSequenceTest {
     public static final LocalDateTime START_POINT = LocalDateTime.of(2015, Month.JANUARY, 1, 0,0,0);
     public static final Duration ONE_DAY = Duration.of(1, ChronoUnit.DAYS);
     public static final Duration ONE_HOUR = Duration.of(1, ChronoUnit.HOURS);
+    public static final Duration ONE_MINUTE = Duration.of(1, ChronoUnit.MINUTES);
     public static final Duration ONE_SEC = Duration.of(1, ChronoUnit.SECONDS);
     private static TimeSequence<Integer> tsInt;
     private static TimeSequence<String> tsString;
@@ -151,6 +152,48 @@ public class TimeSequenceTest {
         tsInt.append(5, ONE_DAY);
         LocalDateTime point = START_POINT.plus(ONE_HOUR).plus(ONE_HOUR);
         Assert.assertEquals("Values equal", 2, tsInt.get(point).intValue());
+    }
+
+    @Test
+    public void testbetweenContinuousFullFill() throws NoSuchValueInPiquets {
+        tsInt.append(START_POINT,1, ONE_HOUR);
+        tsInt.append(2, ONE_HOUR);
+        tsInt.append(3, ONE_HOUR.multipliedBy(3L));
+        LocalDateTime startInterval = START_POINT.plus(ONE_HOUR);
+        LocalDateTime finishInterval = START_POINT.plus(ONE_HOUR.multipliedBy(4L));
+
+        TimeSequence<Integer> resultInterval = tsInt.between(startInterval, finishInterval);
+        Assert.assertEquals("Length equal", ONE_HOUR.multipliedBy(3L), resultInterval.getLength());
+        Assert.assertEquals("Length equal", 2,resultInterval.getPiquetCount());
+    }
+
+    @Test
+    public void testbetweenContinuousFullFillMiddlePointTwoPiquets() throws NoSuchValueInPiquets {
+        tsInt.append(START_POINT,1, ONE_HOUR);
+        tsInt.append(2, ONE_HOUR.multipliedBy(2L));
+        tsInt.append(3, ONE_HOUR.multipliedBy(3L));
+        LocalDateTime startInterval = START_POINT.plus(ONE_HOUR.multipliedBy(2L));
+        LocalDateTime finishInterval = START_POINT.plus(ONE_HOUR.multipliedBy(4L));
+
+        TimeSequence<Integer> resultInterval = tsInt.between(startInterval, finishInterval);
+        Assert.assertEquals("Length equal", ONE_HOUR.multipliedBy(2L), resultInterval.getLength());
+        Assert.assertEquals("Piquets equal", 2,resultInterval.getPiquetCount());
+    }
+
+    @Test
+    public void testbetweenContinuousFullFillMiddlePointMorePiquets() throws NoSuchValueInPiquets {
+        tsInt.append(START_POINT,1, ONE_HOUR);
+        tsInt.append(2, ONE_HOUR);
+        tsInt.append(3, ONE_HOUR);
+        tsInt.append(4, ONE_HOUR);
+        tsInt.append(5, ONE_HOUR);
+        tsInt.append(6, ONE_HOUR);
+        LocalDateTime startInterval = START_POINT.plus(ONE_MINUTE.multipliedBy(30L));
+        LocalDateTime finishInterval = startInterval.plus(ONE_HOUR.multipliedBy(5L));
+
+        TimeSequence<Integer> resultInterval = tsInt.between(startInterval, finishInterval);
+        Assert.assertEquals("Length equal", ONE_HOUR.multipliedBy(5L), resultInterval.getLength());
+        Assert.assertEquals("Piquets equal", 6,resultInterval.getPiquetCount());
     }
 
 }
