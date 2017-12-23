@@ -31,7 +31,14 @@ public class Piquet<T> {
 
     public boolean isIncludeDate(LocalDateTime middlePoint){
         return (((middlePoint.isAfter(this.getStartPoint())) && (middlePoint.isBefore(this.getEndPoint()))) ||
-                middlePoint.equals(this.getStartPoint()) ||  middlePoint.equals(this.getEndPoint()));
+                middlePoint.equals(this.getStartPoint()) /*||  middlePoint.equals(this.getEndPoint())*/);
+    }
+
+    public boolean isDateBeforePiquet(LocalDateTime comparePoint){
+        return startPoint.isAfter(comparePoint);
+    }
+    public boolean isDateAfterPiquet(LocalDateTime comparePoint){
+        return getEndPoint().isBefore(comparePoint);
     }
 
     @Override

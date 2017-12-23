@@ -7,6 +7,14 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.ArrayList;
 
+/**
+ * WARN!!! Последовательности - полуоткрытые интервалы
+ * [1,2)[2,3)...
+ * See {@link Piquet#isIncludeDate(LocalDateTime)} for the date-based equivalent to this class.
+ *
+ * @param <T> type of function value
+ */
+
 public class TimeSequence<T> {
     public static String APPLICABLE_EXC = "Couldn't call method 'append(T value, Duration until)' when timeSequence is empty.";
     public static String DATE_EXC = "Couldn't call method 'append(LocalDateTime startPoint,T value, Duration until)' " +
@@ -48,7 +56,7 @@ public class TimeSequence<T> {
 
     /**
      * Static factory method for TimeSequence
-     * @param <T> - type of values
+     * @param <T> type of values
      * @return new TimeSequence without piquets
      */
     public static <T> TimeSequence timeSequence(){
@@ -56,28 +64,31 @@ public class TimeSequence<T> {
     }
 
     /**
-     * Get value for @link{point}
-     * @param point - date
-     * @return value for @link{point}
-     * @throws NoSuchValueInPiquets - if piquet included this @link{point} doesn't exist
+     * Get value for {@link point}
+     * @param point date
+     * @return value for {@link point}
+     * @throws NoSuchValueInPiquets - if piquet included this {@link point} doesn't exist
      */
     public T get(LocalDateTime point) throws NoSuchValueInPiquets {
-        return getPiquet(point).getValue();
+        Piquet<T> foundPiquet = getPiquet(point);
+        if (foundPiquet != null)  return foundPiquet.getValue();
+        throw new NoSuchValueInPiquets();
+
     }
 
     /**
-     * Get value for @link{point}
-     * @param point - date
-     * @param value - value for @link{point}
-     * @return true, if piquet included this @link{point} exists otherwise false
+     * Get value for {@link point}
+     * @param point date
+     * @param value value for {@link point}
+     * @return true, if piquet included this {@link point} exists otherwise false
      */
     public boolean tryGet(LocalDateTime point, T value){
         throw new UnsupportedOperationException();
     }
 
     /**
-     * Find first piquet with value = @link{value}
-     * @param value - goal value
+     * Find first piquet with value = {@link 1}
+     * @param value goal value
      * @return piquet with goal value
      * @throws NoSuchValueInPiquets - if piquet with goal value doesn't exist
      */
@@ -87,10 +98,11 @@ public class TimeSequence<T> {
     }
 
     /**
+     * Get subsequence
      * Получить подпоследовательность, полностью входящую в заданный временной отрезок
      * @param point1
      * @param point2
-     * @return
+     * @return subsequence
      */
     public TimeSequence<T> between(LocalDateTime point1, LocalDateTime point2){
         TimeSequence<T> betweenResult = timeSequence();
@@ -108,33 +120,48 @@ public class TimeSequence<T> {
         if (startInterval.isAfter(getSequenceEndTime()) || startInterval.equals(getSequenceEndTime()) ||
                 finishInterval.isBefore(getSequenceStartTime()) || finishInterval.equals(getSequenceStartTime()) )
             return betweenResult;
-        try {
-            Piquet<T> foundPiquetWithStartPoint = getPiquet(startInterval);
-            Piquet<T> foundPiquetWithFinishPoint = getPiquet(finishInterval);
-            betweenResult.append(startInterval, foundPiquetWithStartPoint.getValue(),
-                    Duration.between(startInterval,foundPiquetWithStartPoint.getEndPoint()));
+        Piquet<T> foundPiquetWithStartPoint = null;
+        Piquet<T> foundPiquetWithFinishPoint = null;
+        foundPiquetWithStartPoint = getPiquet(startInterval);
+        foundPiquetWithFinishPoint = getPiquet(finishInterval);
+            if (foundPiquetWithStartPoint == null){
+                for (int i = 0; i < piquets.size() - 1; i++) {
+                    if (piquets.get(i).isDateAfterPiquet(startInterval) && piquets.get(i+1).isDateBeforePiquet(startInterval)) {
+                        foundPiquetWithStartPoint = piquets.get(i + 1);
+                        break;
+                    }
+                }
+            } else {
+                foundPiquetWithStartPoint = new Piquet(Duration.between(startInterval, foundPiquetWithStartPoint.getEndPoint()),
+                        startInterval, foundPiquetWithStartPoint.getValue());
 
-            int i = piquets.indexOf(foundPiquetWithStartPoint) + 1;
-            while (!piquets.get(i).equals(foundPiquetWithFinishPoint)){
+            }
+            if (foundPiquetWithFinishPoint == null) {
+                for (int i = 0; i < piquets.size(); i++) {
+                    if (piquets.get(i).isDateAfterPiquet(finishInterval) && ((i == (piquets.size() - 1)) || (piquets.get(i + 1).isDateBeforePiquet(finishInterval)))) {
+                        foundPiquetWithFinishPoint = piquets.get(i);
+                        break;
+                    }
+                }
+            } else {
+                foundPiquetWithFinishPoint = new Piquet(Duration.between(foundPiquetWithFinishPoint.getStartPoint(), finishInterval).abs(),
+                        foundPiquetWithFinishPoint.getStartPoint(), foundPiquetWithStartPoint.getValue());
+            }
+            betweenResult.append(foundPiquetWithStartPoint);
+            int i = piquets.indexOf(getPiquet(foundPiquetWithStartPoint.getStartPoint())) + 1 ;
+            while (!piquets.get(i).getStartPoint().equals(foundPiquetWithFinishPoint.getStartPoint())){
                 Piquet<T> tempPiquet = piquets.get(i);
                 betweenResult.append(tempPiquet.getStartPoint(), tempPiquet.getValue(), tempPiquet.getPiquetDuration());
                 i++;
             }
-            
-            betweenResult.append(foundPiquetWithFinishPoint.getStartPoint(), foundPiquetWithStartPoint.getValue(),
-                    Duration.between(foundPiquetWithFinishPoint.getStartPoint(),finishInterval).abs());
-        } catch (NoSuchValueInPiquets noSuchValueInPiquets) {
-            noSuchValueInPiquets.printStackTrace();
-        }
-
-
+            betweenResult.append(foundPiquetWithFinishPoint);
         return betweenResult;
     }
 
     /**
      * Add new piquet in the end after previous piquet
-     * @param value - function's value for @link{until} time cut
-     * @param until - cut's duration
+     * @param value function's value for {@link value} time cut
+     * @param until cut's duration
      * @return sequence with new piquet
      */
     public TimeSequence<T> append(T value, Duration until){
@@ -143,19 +170,27 @@ public class TimeSequence<T> {
         return append(this.getSequenceEndTime(),value, until);
     }
     /**
-     * Add new piquet in the end after previous piquet
-     * @param value - function's value for @link{until} time cut
-     * @param until - cut's duration
+     * Add new piquet on any place
+     * @param value function's value for {@link until} time cut
+     * @param until cut's duration
      * @return sequence with new piquet
      */
     public TimeSequence<T> append(LocalDateTime startPoint, T value,  Duration until){
         if ((!isEmpty) && (piquets.get(piquetCount-1).getEndPoint().isAfter(startPoint)))
             throw new IllegalStateException(DATE_EXC);
+
+        LocalDateTime currentSequenceEnd = getSequenceEndTime();
+        if (!(currentSequenceEnd == null || currentSequenceEnd.equals(startPoint)))
+            isContinuous = false;
         piquets.add(new Piquet<T>(until, startPoint, value));
         piquetCount++;
         isEmpty = false;
         length = length.plus(until);
         return this;
+    }
+
+    public TimeSequence<T> append(Piquet<T> piquet){
+        return append(piquet.getStartPoint(), piquet.getValue(), piquet.getPiquetDuration());
     }
 
     private LocalDateTime getSequenceStartTime(){
@@ -167,16 +202,15 @@ public class TimeSequence<T> {
     }
 
     /**
-     * Get value for @link{point}
-     * @param point - date
-     * @return value for @link{point}
-     * @throws NoSuchValueInPiquets - if piquet included this @link{point} doesn't exist
+     * Get value for {@link point}
+     * @param point date
+     * @return value for {@link point}
      */
-    public Piquet<T> getPiquet(LocalDateTime point) throws NoSuchValueInPiquets {
+    public Piquet<T> getPiquet(LocalDateTime point) {
         if ((isEmpty) || (piquets.get(0).getStartPoint().isAfter(point)) ||
                 (getSequenceEndTime().isBefore(point)) )
-            throw new NoSuchValueInPiquets();
-        Piquet<T> foundPiquet = piquets.stream().filter(item -> item.isIncludeDate(point)).findFirst().orElseThrow(() -> new NoSuchValueInPiquets());
+            return null;
+        Piquet<T> foundPiquet = piquets.stream().filter(item -> item.isIncludeDate(point)).findFirst().orElse(null);
         return foundPiquet;
     }
 

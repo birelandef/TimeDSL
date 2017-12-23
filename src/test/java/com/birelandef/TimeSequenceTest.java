@@ -133,7 +133,7 @@ public class TimeSequenceTest {
     public void testGetNotContinuousMiddlePoint() throws NoSuchValueInPiquets {
         tsInt.append(START_POINT,1, ONE_HOUR);
         tsInt.append(2, ONE_HOUR);
-        LocalDateTime newCutDate = START_POINT.plus(ONE_HOUR).plus(ONE_HOUR).plus(ONE_HOUR);
+        LocalDateTime newCutDate = START_POINT.plus(ONE_HOUR.multipliedBy(3L));
         tsInt.append(newCutDate,3, ONE_DAY);
         tsInt.append(4, ONE_HOUR);
         tsInt.append(5, ONE_DAY);
@@ -146,12 +146,13 @@ public class TimeSequenceTest {
     public void testGetNotContinuousEndPoint() throws NoSuchValueInPiquets {
         tsInt.append(START_POINT,1, ONE_HOUR);
         tsInt.append(2, ONE_HOUR);
-        LocalDateTime newCutDate = START_POINT.plus(ONE_HOUR).plus(ONE_HOUR).plus(ONE_HOUR);
+        LocalDateTime newCutDate = START_POINT.plus(ONE_HOUR.multipliedBy(3L));
         tsInt.append(newCutDate,3, ONE_DAY);
         tsInt.append(4, ONE_HOUR);
         tsInt.append(5, ONE_DAY);
-        LocalDateTime point = START_POINT.plus(ONE_HOUR).plus(ONE_HOUR);
-        Assert.assertEquals("Values equal", 2, tsInt.get(point).intValue());
+        thrown.expect(NoSuchValueInPiquets.class);
+        LocalDateTime point = START_POINT.plus(ONE_HOUR.multipliedBy(2L));
+        tsInt.get(point);
     }
 
     @Test
@@ -164,7 +165,7 @@ public class TimeSequenceTest {
 
         TimeSequence<Integer> resultInterval = tsInt.between(startInterval, finishInterval);
         Assert.assertEquals("Length equal", ONE_HOUR.multipliedBy(3L), resultInterval.getLength());
-        Assert.assertEquals("Length equal", 2,resultInterval.getPiquetCount());
+        Assert.assertEquals("Piquets equal", 2,resultInterval.getPiquetCount());
     }
 
     @Test
@@ -174,6 +175,21 @@ public class TimeSequenceTest {
         tsInt.append(3, ONE_HOUR.multipliedBy(3L));
         LocalDateTime startInterval = START_POINT.plus(ONE_HOUR.multipliedBy(2L));
         LocalDateTime finishInterval = START_POINT.plus(ONE_HOUR.multipliedBy(4L));
+
+        TimeSequence<Integer> resultInterval = tsInt.between(startInterval, finishInterval);
+        Assert.assertEquals("Length equal", ONE_HOUR.multipliedBy(2L), resultInterval.getLength());
+        Assert.assertEquals("Piquets equal", 2,resultInterval.getPiquetCount());
+    }
+
+    @Test
+    public void testbetweenNotContinuousFullFillMiddlePointTwoPiquets() throws NoSuchValueInPiquets {
+        tsInt.append(START_POINT,1, ONE_HOUR);
+        tsInt.append(2, ONE_HOUR.multipliedBy(2L));
+        LocalDateTime skipStartDate = START_POINT.plus(ONE_HOUR.multipliedBy(4L));
+        tsInt.append(skipStartDate,3, ONE_HOUR.multipliedBy(3L));
+
+        LocalDateTime startInterval = START_POINT.plus(ONE_HOUR.multipliedBy(2L));
+        LocalDateTime finishInterval = START_POINT.plus(ONE_HOUR.multipliedBy(5L));
 
         TimeSequence<Integer> resultInterval = tsInt.between(startInterval, finishInterval);
         Assert.assertEquals("Length equal", ONE_HOUR.multipliedBy(2L), resultInterval.getLength());
@@ -195,5 +211,88 @@ public class TimeSequenceTest {
         Assert.assertEquals("Length equal", ONE_HOUR.multipliedBy(5L), resultInterval.getLength());
         Assert.assertEquals("Piquets equal", 6,resultInterval.getPiquetCount());
     }
+
+    @Test
+    public void testbetweenNotContinuousFullFillMiddlePointMorePiquets() throws NoSuchValueInPiquets {
+        tsInt.append(START_POINT,1, ONE_HOUR);
+        tsInt.append(2, ONE_HOUR);
+        LocalDateTime skipStartDate = START_POINT.plus(ONE_HOUR.multipliedBy(3L));
+        tsInt.append(skipStartDate,4, ONE_HOUR);
+        tsInt.append(5, ONE_HOUR);
+        tsInt.append(6, ONE_HOUR);
+        LocalDateTime startInterval = START_POINT.plus(ONE_MINUTE.multipliedBy(30L));
+        LocalDateTime finishInterval = startInterval.plus(ONE_HOUR.multipliedBy(5L));
+
+        TimeSequence<Integer> resultInterval = tsInt.between(startInterval, finishInterval);
+        Assert.assertEquals("Length equal", ONE_HOUR.multipliedBy(4L), resultInterval.getLength());
+        Assert.assertEquals("Piquets equal", 5,resultInterval.getPiquetCount());
+    }
+
+    /**
+     * | 1 | 2 |   | 3 | 4 |   |   |
+     * 0   1   2   3   4   5   6   7
+     *           ^       ^
+     * @throws NoSuchValueInPiquets
+     */
+    @Test
+    public void testbetweenNotContinuousStartPointNotInPiquetEndPointInPiquet() throws NoSuchValueInPiquets {
+        tsInt.append(START_POINT,1, ONE_HOUR);
+        tsInt.append(2, ONE_HOUR);
+        LocalDateTime skipStartDate = START_POINT.plus(ONE_HOUR.multipliedBy(3L));
+        tsInt.append(skipStartDate,3, ONE_HOUR);
+        tsInt.append(4, ONE_HOUR);
+        LocalDateTime startInterval = START_POINT.plus(ONE_HOUR.multipliedBy(2L)).plus(ONE_MINUTE.multipliedBy(30L));
+        LocalDateTime finishInterval = START_POINT.plus(ONE_HOUR.multipliedBy(4L)).plus(ONE_MINUTE.multipliedBy(30L));
+
+        TimeSequence<Integer> resultInterval = tsInt.between(startInterval, finishInterval);
+        Assert.assertEquals("Length equal", ONE_HOUR.plus(ONE_MINUTE.multipliedBy(30L)), resultInterval.getLength());
+        Assert.assertEquals("Piquets equal", 2,resultInterval.getPiquetCount());
+    }
+
+    /**
+     * | 1 | 2 |   | 3 | 4 |   |   |
+     * 0   1   2   3   4   5   6   7
+     *       ^               ^
+     * @throws NoSuchValueInPiquets
+     */
+    @Test
+    public void testbetweenNotContinuousStartPointInPiquetEndPointNotInPiquet() throws NoSuchValueInPiquets {
+        tsInt.append(START_POINT,1, ONE_HOUR);
+        tsInt.append(2, ONE_HOUR);
+        LocalDateTime skipStartDate = START_POINT.plus(ONE_HOUR.multipliedBy(3L));
+        tsInt.append(skipStartDate,3, ONE_HOUR);
+        tsInt.append(4, ONE_HOUR);
+        LocalDateTime startInterval = START_POINT.plus(ONE_HOUR).plus(ONE_MINUTE.multipliedBy(30L));
+        LocalDateTime finishInterval = START_POINT.plus(ONE_HOUR.multipliedBy(5L)).plus(ONE_MINUTE.multipliedBy(30L));
+
+        TimeSequence<Integer> resultInterval = tsInt.between(startInterval, finishInterval);
+        Assert.assertEquals("Length equal", ONE_HOUR.multipliedBy(2L).plus(ONE_MINUTE.multipliedBy(30L)), resultInterval.getLength());
+        Assert.assertEquals("Piquets equal", 3,resultInterval.getPiquetCount());
+    }
+
+    /**
+     * | 1 | 2 |   | 3 | 4 |   |   |
+     * 0   1   2   3   4   5   6   7
+     *           ^           ^
+     * @throws NoSuchValueInPiquets
+     */
+    @Test
+    public void testbetweenNotContinuousStartPointNotInPiquet() throws NoSuchValueInPiquets {
+        tsInt.append(START_POINT,1, ONE_HOUR);
+        tsInt.append(2, ONE_HOUR);
+        LocalDateTime skipStartDate = START_POINT.plus(ONE_HOUR.multipliedBy(3L));
+        tsInt.append(skipStartDate,3, ONE_HOUR);
+        tsInt.append(4, ONE_HOUR);
+        LocalDateTime startInterval = START_POINT.plus(ONE_HOUR.multipliedBy(2L)).plus(ONE_MINUTE.multipliedBy(30L));
+        LocalDateTime finishInterval = startInterval.plus(ONE_HOUR.multipliedBy(3L));
+
+        TimeSequence<Integer> resultInterval = tsInt.between(startInterval, finishInterval);
+        Assert.assertEquals("Length equal", ONE_HOUR.multipliedBy(2L), resultInterval.getLength());
+        Assert.assertEquals("Piquets equal", 2,resultInterval.getPiquetCount());
+    }
+
+
+
+
 
 }
