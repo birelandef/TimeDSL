@@ -290,8 +290,17 @@ public class TimeSequenceTest {
         Assert.assertEquals("Length equal", ONE_HOUR.multipliedBy(2L), resultInterval.getLength());
         Assert.assertEquals("Piquets equal", 2,resultInterval.getPiquetCount());
     }
-
-
+    @Test
+    public void testDemonstrateDSL(){
+        TimeSequence<String> testDSL = timeSequence().
+                append(START_POINT,"A", ONE_HOUR).
+                append("B", ONE_HOUR ).
+                append("C", ONE_HOUR ).
+                append("D", ONE_HOUR ).
+                append("F", ONE_HOUR );
+        System.out.println(testDSL);
+        System.out.println(testDSL.isContinuous());
+    }
 
 
 
