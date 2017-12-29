@@ -2,6 +2,7 @@ package com.birelandef;
 
 import com.birelendef.NoSuchValueInPiquets;
 import com.birelendef.Piquet;
+import com.birelendef.PostExecutionChecker;
 import com.birelendef.TimeSequence;
 import org.junit.Assert;
 import org.junit.Before;
@@ -9,10 +10,12 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
+import java.lang.reflect.Method;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.Month;
 import java.time.temporal.ChronoUnit;
+import java.util.Properties;
 
 import static com.birelendef.TimeSequence.APPLICABLE_EXC;
 import static com.birelendef.TimeSequence.DATE_EXC;
@@ -300,6 +303,42 @@ public class TimeSequenceTest {
                 append("F", ONE_HOUR );
         System.out.println(testDSL);
         System.out.println(testDSL.isContinuous());
+    }
+
+    @Test
+    public void testCopy(){
+        TimeSequence<String> original = timeSequence().
+                append(START_POINT,"A", ONE_HOUR).
+                append("B", ONE_HOUR ).
+                append("C", ONE_HOUR ).
+                append("D", ONE_HOUR ).
+                append("F", ONE_HOUR );
+        TimeSequence<String> copy = original.copy();
+        Assert.assertEquals("Length equal", ONE_HOUR.multipliedBy(5L), copy.getLength());
+        Assert.assertEquals("Piquets equal", 5, copy.getPiquetCount());
+        Assert.assertEquals("IsEmpty equal", false, copy.isEmpty());
+        Assert.assertEquals("Iscontinious equal", true, copy.isContinuous());
+    }
+
+    @Test
+    public void testEnv(){
+        TimeSequence<String> original = timeSequence().
+                append(START_POINT,"A", ONE_HOUR).
+                append("B", ONE_HOUR ).
+                append("C", ONE_HOUR ).
+                append("D", ONE_HOUR );
+        try {
+            Method testMethod = String.class.getMethod("append", String.class, Duration.class);
+            Properties props = new Properties();
+            props.put(String.class.getMethod("getLength"), ONE_HOUR.multipliedBy(5L) );
+            props.put(String.class.getMethod("getPiquetCount"), 5);
+            props.put(String.class.getMethod("isEmpty"), false);
+            props.put(String.class.getMethod("isContinuous"), true);
+            PostExecutionChecker.execute(props, testMethod, original, "F", ONE_HOUR);
+        } catch (NoSuchMethodException e) {
+            e.printStackTrace();
+        }
+
     }
 
 

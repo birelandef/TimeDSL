@@ -214,6 +214,20 @@ public class TimeSequence<T> {
         return foundPiquet;
     }
 
+    /**
+     * Clone current timeline to new instance
+     * @return new instance
+     */
+    public TimeSequence<T> copy(){
+        TimeSequence newTimeSequence = timeSequence();
+        newTimeSequence.isEmpty = this.isEmpty;
+        newTimeSequence.length = this.length;
+        newTimeSequence.piquetCount = this.piquetCount;
+        newTimeSequence.isContinuous = this.isContinuous;
+        newTimeSequence.piquets.addAll(this.piquets);
+        return newTimeSequence;
+    }
+
     @Override
     public String toString() {
         return "TimeSequence{" +
