@@ -23,7 +23,7 @@ public class PostExecutionChecker {
      *                  - continuous
      * @param method - invoking method {@link TimeSequence}
      * @param initTimeLine - initial object
-     * @param inputArgs - args for {@link method}
+     * @param inputArgs - args for {@code method}
      */
     public static void execute(Properties properties, Method method, TimeSequence initTimeLine, Object... inputArgs){
 

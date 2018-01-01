@@ -64,10 +64,10 @@ public class TimeSequence<T> {
     }
 
     /**
-     * Get value for {@link point}
+     * Get value for {@code point}
      * @param point date
-     * @return value for {@link point}
-     * @throws NoSuchValueInPiquets - if piquet included this {@link point} doesn't exist
+     * @return value for {@code point}
+     * @throws NoSuchValueInPiquets - if piquet included this {@code point} doesn't exist
      */
     public T get(LocalDateTime point) throws NoSuchValueInPiquets {
         Piquet<T> foundPiquet = getPiquet(point);
@@ -77,10 +77,10 @@ public class TimeSequence<T> {
     }
 
     /**
-     * Get value for {@link point}
+     * Get value for {@code point}
      * @param point date
-     * @param value value for {@link point}
-     * @return true, if piquet included this {@link point} exists otherwise false
+     * @param value value for {@code point}
+     * @return true, if piquet included this {@code point} exists otherwise false
      */
     public boolean tryGet(LocalDateTime point, T value){
         throw new UnsupportedOperationException();
@@ -160,7 +160,7 @@ public class TimeSequence<T> {
 
     /**
      * Add new piquet in the end after previous piquet
-     * @param value function's value for {@link value} time cut
+     * @param value function's value for {@code value} time cut
      * @param until cut's duration
      * @return sequence with new piquet
      */
@@ -171,7 +171,7 @@ public class TimeSequence<T> {
     }
     /**
      * Add new piquet on any place
-     * @param value function's value for {@link until} time cut
+     * @param value function's value for {@code until} time cut
      * @param until cut's duration
      * @return sequence with new piquet
      */
@@ -202,9 +202,9 @@ public class TimeSequence<T> {
     }
 
     /**
-     * Get value for {@link point}
+     * Get value for {@code point}
      * @param point date
-     * @return value for {@link point}
+     * @return value for {@code point}
      */
     public Piquet<T> getPiquet(LocalDateTime point) {
         if ((isEmpty) || (piquets.get(0).getStartPoint().isAfter(point)) ||
