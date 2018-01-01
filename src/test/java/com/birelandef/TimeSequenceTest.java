@@ -325,9 +325,6 @@ public class TimeSequenceTest {
                 append("C", ONE_HOUR ).
                 append("D", ONE_HOUR );
         try {
-            for (Method method : TimeSequence.class.getDeclaredMethods()) {
-                System.out.println(method);
-            }
             Method testMethod = TimeSequence.class.getMethod("append", Object.class, Duration.class);
             Properties props = new Properties();
             props.put(TimeSequence.class.getMethod("getLength"), ONE_HOUR.multipliedBy(5L) );
@@ -336,7 +333,7 @@ public class TimeSequenceTest {
             props.put(TimeSequence.class.getMethod("isContinuous"), true);
             PostExecutionChecker.execute(props, testMethod, original, "F", ONE_HOUR);
         } catch (NoSuchMethodException e) {
-            e.printStackTrace();
+            System.err.println("Error  while test invoke");
         }
 
     }
