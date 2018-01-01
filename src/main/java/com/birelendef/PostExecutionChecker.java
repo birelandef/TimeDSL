@@ -28,8 +28,10 @@ public class PostExecutionChecker {
     public static void execute(Properties properties, Method method, TimeSequence initTimeLine, Object... inputArgs){
 
         TimeSequence beforeExecition = initTimeLine.copy();
+        System.out.println(beforeExecition);
         try {
             Object result = method.invoke(initTimeLine, inputArgs);
+            System.out.println(initTimeLine);
             assertEquals("Initial object didn't change", beforeExecition, initTimeLine);
             Method checkingProperty = null;
             for (Map.Entry<Object, Object> objectObjectEntry : properties.entrySet()) {

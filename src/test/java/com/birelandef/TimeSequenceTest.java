@@ -48,8 +48,8 @@ public class TimeSequenceTest {
     }
     @Test
     public void testAppendWithoutStartPoint(){
-        tsInt.append(START_POINT,1, ONE_DAY);
-        tsInt.append(1, ONE_DAY);
+        tsInt = tsInt.append(START_POINT,1, ONE_DAY).
+                append(1, ONE_DAY);
         Assert.assertEquals("Lengths equal",Duration.ofDays(2),tsInt.getLength());
         Assert.assertEquals("Piquet's counts equal",2, tsInt.getPiquetCount());
     }
@@ -57,19 +57,19 @@ public class TimeSequenceTest {
     public void testAppendWithStartPointExc(){
         thrown.expect(IllegalStateException.class);
         thrown.expectMessage(containsString(DATE_EXC));
-        tsInt.append(START_POINT,1, ONE_DAY);
-        tsInt.append(START_POINT,1, ONE_DAY);
+        tsInt = tsInt.append(START_POINT,1, ONE_DAY).
+                append(START_POINT,1, ONE_DAY);
     }
     @Test
     public void testAppendWithStartPoint(){
-        tsInt.append(START_POINT,1, ONE_DAY);
-        tsInt.append(START_POINT.plus(ONE_DAY),1, ONE_DAY);
+        tsInt = tsInt.append(START_POINT,1, ONE_DAY).
+                append(START_POINT.plus(ONE_DAY),1, ONE_DAY);
     }
     @Test
     public void testFind(){
-        tsInt.append(START_POINT,2, ONE_DAY);
-        tsInt.append(1, ONE_HOUR);
-        tsInt.append(1, ONE_DAY);
+        tsInt = tsInt.append(START_POINT,2, ONE_DAY).
+                append(1, ONE_HOUR).
+                append(1, ONE_DAY);
         try {
             Piquet<Integer> foundPiquet = tsInt.find(1);
             Assert.assertEquals("Values equal", 1, foundPiquet.getValue().intValue());
@@ -83,9 +83,9 @@ public class TimeSequenceTest {
 
     @Test
     public void testFindExc() throws NoSuchValueInPiquets {
-        tsInt.append(START_POINT,1, ONE_DAY);
-        tsInt.append(1, ONE_HOUR);
-        tsInt.append(1, ONE_DAY);
+        tsInt = tsInt.append(START_POINT,1, ONE_DAY).
+                append(1, ONE_HOUR).
+                append(1, ONE_DAY);
         thrown.expect(NoSuchValueInPiquets.class);
         tsInt.find(2);
     }
@@ -98,7 +98,7 @@ public class TimeSequenceTest {
 
     @Test
     public void testGetBeforeExc() throws NoSuchValueInPiquets {
-        tsInt.append(START_POINT,1, ONE_DAY);
+        tsInt = tsInt.append(START_POINT,1, ONE_DAY);
         thrown.expect(NoSuchValueInPiquets.class);
         tsInt.get(START_POINT.minus(ONE_HOUR));
     }
@@ -111,58 +111,55 @@ public class TimeSequenceTest {
 
     @Test
     public void testGetContinuous() throws NoSuchValueInPiquets {
-        tsInt.append(START_POINT,1, ONE_HOUR);
-        tsInt.append(2, ONE_HOUR);
-        tsInt.append(3, ONE_DAY);
-        tsInt.append(4, ONE_HOUR);
-        tsInt.append(5, ONE_DAY);
+        tsInt = tsInt.append(START_POINT,1, ONE_HOUR).
+                append(2, ONE_HOUR).
+                append(3, ONE_DAY).
+                append(4, ONE_HOUR).
+                append(5, ONE_DAY);
         LocalDateTime point = START_POINT.plus(ONE_HOUR).plus(ONE_HOUR).plus(ONE_HOUR);
         Assert.assertEquals("Values equal", 3, tsInt.get(point).intValue());
     }
 
     @Test
     public void testGetNotContinuousStartPoint() throws NoSuchValueInPiquets {
-        tsInt.append(START_POINT,1, ONE_HOUR);
-        tsInt.append(2, ONE_HOUR);
         LocalDateTime newCutDate = START_POINT.plus(ONE_HOUR).plus(ONE_HOUR).plus(ONE_HOUR);
-        tsInt.append(newCutDate,3, ONE_DAY);
-        tsInt.append(4, ONE_HOUR);
-        tsInt.append(5, ONE_DAY);
-        LocalDateTime point = newCutDate;
-        Assert.assertEquals("Values equal", 3, tsInt.get(point).intValue());
+        tsInt = tsInt.append(START_POINT,1, ONE_HOUR).
+                append(2, ONE_HOUR).
+                append(newCutDate,3, ONE_DAY).
+                append(4, ONE_HOUR).
+                append(5, ONE_DAY);
+        Assert.assertEquals("Values equal", 3, tsInt.get(newCutDate).intValue());
     }
 
     @Test
     public void testGetNotContinuousMiddlePoint() throws NoSuchValueInPiquets {
-        tsInt.append(START_POINT,1, ONE_HOUR);
-        tsInt.append(2, ONE_HOUR);
         LocalDateTime newCutDate = START_POINT.plus(ONE_HOUR.multipliedBy(3L));
-        tsInt.append(newCutDate,3, ONE_DAY);
-        tsInt.append(4, ONE_HOUR);
-        tsInt.append(5, ONE_DAY);
+        tsInt = tsInt.append(START_POINT,1, ONE_HOUR).
+                append(2, ONE_HOUR).
+                append(newCutDate,3, ONE_DAY).
+                append(4, ONE_HOUR).
+                append(5, ONE_DAY);
         thrown.expect(NoSuchValueInPiquets.class);
-        LocalDateTime point = newCutDate.minus(ONE_SEC);
-        tsInt.get(point);
+        tsInt.get(newCutDate.minus(ONE_SEC));
     }
 
     @Test
     public void testGetNotContinuousEndPoint() throws NoSuchValueInPiquets {
-        tsInt.append(START_POINT,1, ONE_HOUR);
-        tsInt.append(2, ONE_HOUR);
         LocalDateTime newCutDate = START_POINT.plus(ONE_HOUR.multipliedBy(3L));
-        tsInt.append(newCutDate,3, ONE_DAY);
-        tsInt.append(4, ONE_HOUR);
-        tsInt.append(5, ONE_DAY);
+        tsInt = tsInt.append(START_POINT,1, ONE_HOUR).
+                append(2, ONE_HOUR).
+                append(newCutDate,3, ONE_DAY).
+                append(4, ONE_HOUR).
+                append(5, ONE_DAY);
         thrown.expect(NoSuchValueInPiquets.class);
-        LocalDateTime point = START_POINT.plus(ONE_HOUR.multipliedBy(2L));
-        tsInt.get(point);
+        tsInt.get(START_POINT.plus(ONE_HOUR.multipliedBy(2L)));
     }
 
     @Test
     public void testbetweenContinuousFullFill() throws NoSuchValueInPiquets {
-        tsInt.append(START_POINT,1, ONE_HOUR);
-        tsInt.append(2, ONE_HOUR);
-        tsInt.append(3, ONE_HOUR.multipliedBy(3L));
+        tsInt = tsInt.append(START_POINT,1, ONE_HOUR).
+                append(2, ONE_HOUR).
+                append(3, ONE_HOUR.multipliedBy(3L));
         LocalDateTime startInterval = START_POINT.plus(ONE_HOUR);
         LocalDateTime finishInterval = START_POINT.plus(ONE_HOUR.multipliedBy(4L));
 
@@ -173,9 +170,9 @@ public class TimeSequenceTest {
 
     @Test
     public void testbetweenContinuousFullFillMiddlePointTwoPiquets() throws NoSuchValueInPiquets {
-        tsInt.append(START_POINT,1, ONE_HOUR);
-        tsInt.append(2, ONE_HOUR.multipliedBy(2L));
-        tsInt.append(3, ONE_HOUR.multipliedBy(3L));
+        tsInt = tsInt.append(START_POINT,1, ONE_HOUR).
+                append(2, ONE_HOUR.multipliedBy(2L)).
+                append(3, ONE_HOUR.multipliedBy(3L));
         LocalDateTime startInterval = START_POINT.plus(ONE_HOUR.multipliedBy(2L));
         LocalDateTime finishInterval = START_POINT.plus(ONE_HOUR.multipliedBy(4L));
 
@@ -186,10 +183,10 @@ public class TimeSequenceTest {
 
     @Test
     public void testbetweenNotContinuousFullFillMiddlePointTwoPiquets() throws NoSuchValueInPiquets {
-        tsInt.append(START_POINT,1, ONE_HOUR);
-        tsInt.append(2, ONE_HOUR.multipliedBy(2L));
         LocalDateTime skipStartDate = START_POINT.plus(ONE_HOUR.multipliedBy(4L));
-        tsInt.append(skipStartDate,3, ONE_HOUR.multipliedBy(3L));
+        tsInt = tsInt.append(START_POINT,1, ONE_HOUR).
+                append(2, ONE_HOUR.multipliedBy(2L)).
+                append(skipStartDate,3, ONE_HOUR.multipliedBy(3L));
 
         LocalDateTime startInterval = START_POINT.plus(ONE_HOUR.multipliedBy(2L));
         LocalDateTime finishInterval = START_POINT.plus(ONE_HOUR.multipliedBy(5L));
@@ -201,12 +198,12 @@ public class TimeSequenceTest {
 
     @Test
     public void testbetweenContinuousFullFillMiddlePointMorePiquets() throws NoSuchValueInPiquets {
-        tsInt.append(START_POINT,1, ONE_HOUR);
-        tsInt.append(2, ONE_HOUR);
-        tsInt.append(3, ONE_HOUR);
-        tsInt.append(4, ONE_HOUR);
-        tsInt.append(5, ONE_HOUR);
-        tsInt.append(6, ONE_HOUR);
+        tsInt = tsInt.append(START_POINT,1, ONE_HOUR).
+                append(2, ONE_HOUR).
+                append(3, ONE_HOUR).
+                append(4, ONE_HOUR).
+                append(5, ONE_HOUR).
+                append(6, ONE_HOUR);
         LocalDateTime startInterval = START_POINT.plus(ONE_MINUTE.multipliedBy(30L));
         LocalDateTime finishInterval = startInterval.plus(ONE_HOUR.multipliedBy(5L));
 
@@ -217,12 +214,12 @@ public class TimeSequenceTest {
 
     @Test
     public void testbetweenNotContinuousFullFillMiddlePointMorePiquets() throws NoSuchValueInPiquets {
-        tsInt.append(START_POINT,1, ONE_HOUR);
-        tsInt.append(2, ONE_HOUR);
         LocalDateTime skipStartDate = START_POINT.plus(ONE_HOUR.multipliedBy(3L));
-        tsInt.append(skipStartDate,4, ONE_HOUR);
-        tsInt.append(5, ONE_HOUR);
-        tsInt.append(6, ONE_HOUR);
+        tsInt = tsInt.append(START_POINT,1, ONE_HOUR).
+                append(2, ONE_HOUR).
+                append(skipStartDate,4, ONE_HOUR).
+                append(5, ONE_HOUR).
+                append(6, ONE_HOUR);
         LocalDateTime startInterval = START_POINT.plus(ONE_MINUTE.multipliedBy(30L));
         LocalDateTime finishInterval = startInterval.plus(ONE_HOUR.multipliedBy(5L));
 
@@ -239,11 +236,11 @@ public class TimeSequenceTest {
      */
     @Test
     public void testbetweenNotContinuousStartPointNotInPiquetEndPointInPiquet() throws NoSuchValueInPiquets {
-        tsInt.append(START_POINT,1, ONE_HOUR);
-        tsInt.append(2, ONE_HOUR);
         LocalDateTime skipStartDate = START_POINT.plus(ONE_HOUR.multipliedBy(3L));
-        tsInt.append(skipStartDate,3, ONE_HOUR);
-        tsInt.append(4, ONE_HOUR);
+        tsInt = tsInt.append(START_POINT,1, ONE_HOUR).
+                append(2, ONE_HOUR).
+                append(skipStartDate,3, ONE_HOUR).
+                append(4, ONE_HOUR);
         LocalDateTime startInterval = START_POINT.plus(ONE_HOUR.multipliedBy(2L)).plus(ONE_MINUTE.multipliedBy(30L));
         LocalDateTime finishInterval = START_POINT.plus(ONE_HOUR.multipliedBy(4L)).plus(ONE_MINUTE.multipliedBy(30L));
 
@@ -260,11 +257,11 @@ public class TimeSequenceTest {
      */
     @Test
     public void testbetweenNotContinuousStartPointInPiquetEndPointNotInPiquet() throws NoSuchValueInPiquets {
-        tsInt.append(START_POINT,1, ONE_HOUR);
-        tsInt.append(2, ONE_HOUR);
         LocalDateTime skipStartDate = START_POINT.plus(ONE_HOUR.multipliedBy(3L));
-        tsInt.append(skipStartDate,3, ONE_HOUR);
-        tsInt.append(4, ONE_HOUR);
+        tsInt = tsInt.append(START_POINT,1, ONE_HOUR).
+                append(2, ONE_HOUR).
+                append(skipStartDate,3, ONE_HOUR).
+                append(4, ONE_HOUR);
         LocalDateTime startInterval = START_POINT.plus(ONE_HOUR).plus(ONE_MINUTE.multipliedBy(30L));
         LocalDateTime finishInterval = START_POINT.plus(ONE_HOUR.multipliedBy(5L)).plus(ONE_MINUTE.multipliedBy(30L));
 
@@ -281,11 +278,11 @@ public class TimeSequenceTest {
      */
     @Test
     public void testbetweenNotContinuousStartPointNotInPiquet() throws NoSuchValueInPiquets {
-        tsInt.append(START_POINT,1, ONE_HOUR);
-        tsInt.append(2, ONE_HOUR);
         LocalDateTime skipStartDate = START_POINT.plus(ONE_HOUR.multipliedBy(3L));
-        tsInt.append(skipStartDate,3, ONE_HOUR);
-        tsInt.append(4, ONE_HOUR);
+        tsInt = tsInt.append(START_POINT,1, ONE_HOUR).
+                append(2, ONE_HOUR).
+                append(skipStartDate,3, ONE_HOUR).
+                append(4, ONE_HOUR);
         LocalDateTime startInterval = START_POINT.plus(ONE_HOUR.multipliedBy(2L)).plus(ONE_MINUTE.multipliedBy(30L));
         LocalDateTime finishInterval = startInterval.plus(ONE_HOUR.multipliedBy(3L));
 
@@ -328,12 +325,15 @@ public class TimeSequenceTest {
                 append("C", ONE_HOUR ).
                 append("D", ONE_HOUR );
         try {
-            Method testMethod = String.class.getMethod("append", String.class, Duration.class);
+            for (Method method : TimeSequence.class.getDeclaredMethods()) {
+                System.out.println(method);
+            }
+            Method testMethod = TimeSequence.class.getMethod("append", Object.class, Duration.class);
             Properties props = new Properties();
-            props.put(String.class.getMethod("getLength"), ONE_HOUR.multipliedBy(5L) );
-            props.put(String.class.getMethod("getPiquetCount"), 5);
-            props.put(String.class.getMethod("isEmpty"), false);
-            props.put(String.class.getMethod("isContinuous"), true);
+            props.put(TimeSequence.class.getMethod("getLength"), ONE_HOUR.multipliedBy(5L) );
+            props.put(TimeSequence.class.getMethod("getPiquetCount"), 5);
+            props.put(TimeSequence.class.getMethod("isEmpty"), false);
+            props.put(TimeSequence.class.getMethod("isContinuous"), true);
             PostExecutionChecker.execute(props, testMethod, original, "F", ONE_HOUR);
         } catch (NoSuchMethodException e) {
             e.printStackTrace();

@@ -147,14 +147,14 @@ public class TimeSequence<T> {
                 foundPiquetWithFinishPoint = new Piquet(Duration.between(foundPiquetWithFinishPoint.getStartPoint(), finishInterval).abs(),
                         foundPiquetWithFinishPoint.getStartPoint(), foundPiquetWithStartPoint.getValue());
             }
-            betweenResult.append(foundPiquetWithStartPoint);
+        betweenResult = betweenResult.append(foundPiquetWithStartPoint);
             int i = piquets.indexOf(getPiquet(foundPiquetWithStartPoint.getStartPoint())) + 1 ;
             while (!piquets.get(i).getStartPoint().equals(foundPiquetWithFinishPoint.getStartPoint())){
                 Piquet<T> tempPiquet = piquets.get(i);
-                betweenResult.append(tempPiquet.getStartPoint(), tempPiquet.getValue(), tempPiquet.getPiquetDuration());
+                betweenResult = betweenResult.append(tempPiquet.getStartPoint(), tempPiquet.getValue(), tempPiquet.getPiquetDuration());
                 i++;
             }
-            betweenResult.append(foundPiquetWithFinishPoint);
+        betweenResult = betweenResult.append(foundPiquetWithFinishPoint);
         return betweenResult;
     }
 
@@ -178,18 +178,18 @@ public class TimeSequence<T> {
     public TimeSequence<T> append(LocalDateTime startPoint, T value,  Duration until){
         if ((!isEmpty) && (piquets.get(piquetCount-1).getEndPoint().isAfter(startPoint)))
             throw new IllegalStateException(DATE_EXC);
-
+        TimeSequence<T> result = this.copy();
         LocalDateTime currentSequenceEnd = getSequenceEndTime();
         if (!(currentSequenceEnd == null || currentSequenceEnd.equals(startPoint)))
-            isContinuous = false;
-        piquets.add(new Piquet<T>(until, startPoint, value));
-        piquetCount++;
-        isEmpty = false;
-        length = length.plus(until);
-        return this;
+            result.isContinuous = false;
+        result.piquets.add(new Piquet<T>(until, startPoint, value));
+        result.piquetCount++;
+        result.isEmpty = false;
+        result.length = length.plus(until);
+        return result;
     }
 
-    public TimeSequence<T> append(Piquet<T> piquet){
+    private TimeSequence<T> append(Piquet<T> piquet){
         return append(piquet.getStartPoint(), piquet.getValue(), piquet.getPiquetDuration());
     }
 
@@ -235,5 +235,29 @@ public class TimeSequence<T> {
                 ", piquetCount=" + piquetCount +
                 ", piquets=" + piquets +
                 '}';
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        TimeSequence<?> that = (TimeSequence<?>) o;
+
+        if (isEmpty != that.isEmpty) return false;
+        if (piquetCount != that.piquetCount) return false;
+        if (isContinuous != that.isContinuous) return false;
+        if (!length.equals(that.length)) return false;
+        return piquets.equals(that.piquets);
+    }
+
+    @Override
+    public int hashCode() {
+        int result = length.hashCode();
+        result = 31 * result + (isEmpty ? 1 : 0);
+        result = 31 * result + piquetCount;
+        result = 31 * result + (isContinuous ? 1 : 0);
+        result = 31 * result + piquets.hashCode();
+        return result;
     }
 }
